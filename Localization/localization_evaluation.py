@@ -3,33 +3,74 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import directed_hausdorff
 from scipy.spatial.transform import Rotation as R
 
-# Load data
-# Assuming the data is stored in CSV files with columns: timestamp, x, y, theta
-amcl_data = np.loadtxt('amcl_pose.csv', delimiter=',')
-ground_truth_data = np.loadtxt('ground_truth.csv', delimiter=',')
+# Function to parse the custom format data
+def parse_data(file_path):
+    timestamps = []
+    positions = []
+    orientations = []
 
-# Synchronize data by timestamps
-# Assuming that both datasets have the same or close timestamps, you can do:
-def synchronize_data(gt_data, amcl_data):
-    synchronized_amcl = []
-    for gt in gt_data:
-        closest_amcl = min(amcl_data, key=lambda x: abs(x[0] - gt[0]))
-        synchronized_amcl.append(closest_amcl)
-    return np.array(synchronized_amcl)
+    with open(file_path, 'r') as file:
+        for line in file:
+            try:
+                # Extract timestamp
+                time_str = line.split('Time: ')[1].split(',')[0]
+                timestamp = float(time_str)
 
-synchronized_amcl_data = synchronize_data(ground_truth_data, amcl_data)
+                # Extract position (x, y, z) - we're interested in x, y
+                position_str = line.split('Position: ')[1].split('),')[0].strip('()')
+                position = [float(coord) for coord in position_str.split(', ')[:2]]
 
-# Extract positions and orientations
-gt_positions = ground_truth_data[:, 1:3]
-amcl_positions = synchronized_amcl_data[:, 1:3]
+                # Extract orientation (quaternion)
+                orientation_str = line.split('Orientation: ')[1].strip('()\n')
+                quaternion = [float(q) for q in orientation_str.split(', ')]
 
-gt_orientations = ground_truth_data[:, 3]
-amcl_orientations = synchronized_amcl_data[:, 3]
+                # Convert quaternion to yaw (theta)
+                r = R.from_quat(quaternion)
+                yaw = r.as_euler('zyx', degrees=False)[0]  # Extract yaw
+
+                timestamps.append(timestamp)
+                positions.append(position)
+                orientations.append(yaw)
+            except (IndexError, ValueError) as e:
+                print(f"Skipping line due to parsing error: {line.strip()} - Error: {e}")
+                continue
+
+    return np.array(timestamps), np.array(positions), np.array(orientations)
+
+# Parse the data
+amcl_timestamps, amcl_positions, amcl_orientations = parse_data('/home/sashitsharma/Desktop/thesis_github/Thesis/Localization/datas/amcl_pose_wo_odom.txt')
+gt_timestamps, gt_positions, gt_orientations = parse_data('/home/sashitsharma/Desktop/thesis_github/Thesis/Localization/datas/base_pose_ground_truth_amcl_odom.txt')
+
+# Synchronize data by matching timestamps exactly
+def synchronize_data(gt_timestamps, gt_positions, gt_orientations, amcl_timestamps, amcl_positions, amcl_orientations):
+    synchronized_gt_positions = []
+    synchronized_gt_orientations = []
+    synchronized_amcl_positions = []
+    synchronized_amcl_orientations = []
+
+    amcl_index = 0
+    for i, gt_time in enumerate(gt_timestamps):
+        while amcl_index < len(amcl_timestamps) and amcl_timestamps[amcl_index] < gt_time:
+            amcl_index += 1
+        if amcl_index < len(amcl_timestamps) and np.isclose(gt_time, amcl_timestamps[amcl_index]):
+            synchronized_gt_positions.append(gt_positions[i])
+            synchronized_gt_orientations.append(gt_orientations[i])
+            synchronized_amcl_positions.append(amcl_positions[amcl_index])
+            synchronized_amcl_orientations.append(amcl_orientations[amcl_index])
+
+    return (np.array(synchronized_gt_positions), np.array(synchronized_gt_orientations),
+            np.array(synchronized_amcl_positions), np.array(synchronized_amcl_orientations))
+
+(synchronized_gt_positions, synchronized_gt_orientations,
+ synchronized_amcl_positions, synchronized_amcl_orientations) = synchronize_data(
+    gt_timestamps, gt_positions, gt_orientations,
+    amcl_timestamps, amcl_positions, amcl_orientations
+)
 
 # Plot the trajectories
 plt.figure(figsize=(10, 6))
-plt.plot(gt_positions[:, 0], gt_positions[:, 1], label='Ground Truth Trajectory', color='blue')
-plt.plot(amcl_positions[:, 0], amcl_positions[:, 1], label='AMCL Estimated Trajectory', color='red')
+plt.plot(synchronized_gt_positions[:, 0], synchronized_gt_positions[:, 1], label='Ground Truth Trajectory', color='blue')
+plt.plot(synchronized_amcl_positions[:, 0], synchronized_amcl_positions[:, 1], label='AMCL Estimated Trajectory', color='red')
 plt.xlabel('X Position (meters)')
 plt.ylabel('Y Position (meters)')
 plt.title('Trajectory Comparison')
@@ -38,11 +79,11 @@ plt.grid(True)
 plt.show()
 
 # Calculate APE (Absolute Pose Error)
-position_errors = np.sqrt((amcl_positions[:, 0] - gt_positions[:, 0])**2 + 
-                          (amcl_positions[:, 1] - gt_positions[:, 1])**2)
+position_errors = np.sqrt((synchronized_amcl_positions[:, 0] - synchronized_gt_positions[:, 0])**2 + 
+                          (synchronized_amcl_positions[:, 1] - synchronized_gt_positions[:, 1])**2)
 
-orientation_errors = np.arctan2(np.sin(amcl_orientations - gt_orientations), 
-                                np.cos(amcl_orientations - gt_orientations))
+orientation_errors = np.arctan2(np.sin(synchronized_amcl_orientations - synchronized_gt_orientations), 
+                                np.cos(synchronized_amcl_orientations - synchronized_gt_orientations))
 
 # Plot APE over time
 plt.figure(figsize=(10, 6))
@@ -63,8 +104,7 @@ print(f'RMSE (Position): {rmse_position:.4f} meters')
 print(f'RMSE (Orientation): {np.degrees(rmse_orientation):.4f} degrees')
 
 # Calculate Hausdorff Distance
-hausdorff_distance = max(directed_hausdorff(gt_positions, amcl_positions)[0], 
-                         directed_hausdorff(amcl_positions, gt_positions)[0])
+hausdorff_distance = max(directed_hausdorff(synchronized_gt_positions, synchronized_amcl_positions)[0], 
+                         directed_hausdorff(synchronized_amcl_positions, synchronized_gt_positions)[0])
 
 print(f'Hausdorff Distance: {hausdorff_distance:.4f} meters')
-

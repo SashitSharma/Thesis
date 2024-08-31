@@ -76,6 +76,7 @@ plt.ylabel('Y Position (meters)')
 plt.title('Trajectory Comparison')
 plt.legend()
 plt.grid(True)
+plt.savefig('trajectory_comparison_amcl_static.png', dpi=300)  # Save the figure
 plt.show()
 
 # Calculate APE (Absolute Pose Error)
@@ -94,6 +95,7 @@ plt.ylabel('Error')
 plt.title('Absolute Pose Error (APE) Over Time')
 plt.legend()
 plt.grid(True)
+plt.savefig('absolute_pose_error_amcl_static.png', dpi=300)  # Save the figure
 plt.show()
 
 # Calculate RMSE

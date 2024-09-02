@@ -60,8 +60,8 @@ def compare_maps(static_map_path, dynamic_map_path):
     dynamic_map = np.array(Image.open(dynamic_map_path).convert('L'))
 
     # Zoom in on both images by a specified zoom factor
-    static_map_zoomed = zoom_in_image(static_map, zoom_factor=1)
-    dynamic_map_zoomed = zoom_in_image(dynamic_map, zoom_factor=2)
+    static_map_zoomed = zoom_in_image(static_map, zoom_factor=1.33)
+    dynamic_map_zoomed = zoom_in_image(dynamic_map, zoom_factor=2.5)
 
     # Resize both images to 480x480 pixels
     static_map_resized = resize_image(static_map_zoomed, size=(640, 640))

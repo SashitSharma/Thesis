@@ -19,8 +19,8 @@ def convert_pgm_to_image(pgm_file_path, output_file_path):
 
 if __name__ == "__main__":
     # Example file paths
-    pgm_file_path = '/home/sashitsharma/Desktop/thesis_github/Thesis/SLAM/Office/karto/karto_map_dynamic.pgm'  # Replace with your .pgm file path
-    output_file_path = '/home/sashitsharma/Desktop/thesis_github/Thesis/SLAM/Office/karto/karto_map_static_dynamic_image.png'   # Replace with your desired output path and format (.png or .jpeg)
+    pgm_file_path = '/home/sashitsharma/catkin_ws/src/teb_navigation/maps/office_map.pgm'  # Replace with your .pgm file path
+    output_file_path = '/home/sashitsharma/Desktop/thesis_github/Thesis/SLAM/Results/office_map_image.png'   # Replace with your desired output path and format (.png or .jpeg)
     
     # Convert the .pgm file to the desired image format
     convert_pgm_to_image(pgm_file_path, output_file_path)

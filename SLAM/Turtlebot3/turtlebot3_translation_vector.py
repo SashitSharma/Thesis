@@ -111,22 +111,22 @@ def plot_trajectories(gt_points, aligned_slam_points):
     """
     plt.figure(figsize=(8, 6))  # Adjust the figure size if necessary
     plt.plot(gt_points[:, 0], gt_points[:, 1], 'b-', label='Ground Truth')
-    plt.plot(aligned_slam_points[:, 0], aligned_slam_points[:, 1], 'g-', label='GMapping SLAM')
+    plt.plot(aligned_slam_points[:, 0], aligned_slam_points[:, 1], 'g-', label='Hector SLAM Dynamic')
     plt.legend()
-    plt.title('Ground Truth vs GMapping SLAM Trajectories')
+    plt.title('Ground Truth vs Hector SLAM Dynamic Trajectories')
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.axis('equal')  # Ensure the same scale for x and y
     plt.xlim([-1.5, 1.5])  # Adjust x-axis limits to zoom in
     plt.ylim([-2.5, 2.5])  # Adjust y-axis limits to zoom in
     plt.grid(True)
-    plt.savefig('trajectory_turtlebot_gmapping_slam.png', dpi=300)
+    plt.savefig('trajectory_turtlebot_hector_slam_dynamic.png', dpi=300)
     plt.show()
 
 def main():
     # Load ground truth and SLAM data from text files
     gt_file_path = '/home/sashitsharma/Desktop/thesis_github/Thesis/SLAM/Turtlebot3/ground_truth_pose.txt'  # Replace with your actual ground truth file path
-    slam_file_path = '/home/sashitsharma/Desktop/thesis_github/Thesis/SLAM/Turtlebot3/gmapping/gmapping_pose.txt'        # Replace with your actual SLAM file path
+    slam_file_path = '/home/sashitsharma/Desktop/thesis_github/Thesis/SLAM/Turtlebot3/hector/hector_pose_dynamic.txt'        # Replace with your actual SLAM file path
 
     gt_points = load_ground_truth_data(gt_file_path)
     slam_points = load_slam_data(slam_file_path)

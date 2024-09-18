@@ -19,7 +19,7 @@ class HectorSLAMDataCollector:
         self.map_frame = rospy.get_param('~map_frame', 'map')
         
         # File to save the data
-        self.output_file = rospy.get_param('~output_file', '/home/sashitsharma/Desktop/thesis_github/Thesis/SLAM/Turtlebot3/gmapping/gmapping_pose.txt')
+        self.output_file = rospy.get_param('~output_file', '/home/sashitsharma/Desktop/thesis_github/Thesis/SLAM/Turtlebot3/gmapping/gmapping_pose_dynamic.txt')
         
         # Data collection rate
         self.rate = rospy.Rate(2)  # 10 Hz, adjust as needed

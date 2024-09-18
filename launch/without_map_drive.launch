@@ -1,0 +1,32 @@
+<launch>
+
+  <param name="/use_sim_time" value="false"/>
+  <!-- Argument for the map file location -->
+  <arg name="map_file" default="$(find teb_navigation)/maps/office_map.yaml"/>
+
+  <!-- Map server node -->
+ <!-- <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen"/> -->
+
+  <!-- Static transform publishers
+  <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="odom_to_base_link" args="0 0 0 0 0 0 odom base_link 100"/>  -->
+  <!--node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="0 0 0 0 0 0 base_link laser 100"/>  -->
+
+  <!-- Example: AMCL for localization (if used) -->
+ <!--<include file="$(find teb_navigation)/launch/amcl.launch"/>  -->
+
+  <!-- Move base node -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <rosparam file="$(find teb_navigation)/config/costmap_common_params.yaml" command="load" ns="global_costmap"/>
+    <rosparam file="$(find teb_navigation)/config/costmap_common_params.yaml" command="load" ns="local_costmap"/>
+    <rosparam file="$(find teb_navigation)/config/local_costmap_params.yaml" command="load"/>
+    <rosparam file="$(find teb_navigation)/config/global_costmap_params.yaml" command="load"/>
+    <rosparam file="$(find teb_navigation)/config/teb_local_planner.yaml" command="load"/>
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
+    <param name="controller_frequency" value="5.0"/>
+    <param name="controller_patience" value="10.0"/>
+    <param name="clearing_rotation_allowed" value="false"/>
+  </node>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find teb_local_planner_tutorials)/cfg/rviz_navigation.rviz"/>
+</launch>
+
